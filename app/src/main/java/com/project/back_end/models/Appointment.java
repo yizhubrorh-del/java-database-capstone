@@ -11,7 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity 
 public class Appointment {
@@ -28,11 +30,18 @@ public class Appointment {
   @NotNull(message = "Patient can't be null")
   private Patient patient;
 
+  @NotBlank(message = "The visit reason can't be blank")
+  @Size(min = 6, max = 50)
+  private String reasonForVisit;
+
   @Future(message = "Appointment time must be in the future")
   private LocalDateTime appointmentTime;
 
   @NotNull(message = "Status can't be null")
   private int status;
+
+  @Size(max = 100)
+  private String notes;
 
   @Transient
   public LocalDateTime getEndTime(){

@@ -3,6 +3,8 @@ package com.project.back_end.models;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.persistence.Id;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -38,4 +40,12 @@ public class Prescription {
 
   @Size(max = 200)
   private String doctorNotes;
+
+  @NotNull(message = "Refill count can't be null")
+  @Min(value = 0, message = "Refill count can't be negative")
+  private int refillCount;
+
+  @Valid
+  @NotNull(message = "Pharmacy can't be null")
+  private Pharmacy pharmacy;
 }
