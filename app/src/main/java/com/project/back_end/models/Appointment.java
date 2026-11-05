@@ -14,8 +14,14 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Entity 
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Appointment {
 
   @Id
@@ -44,21 +50,17 @@ public class Appointment {
   private String notes;
 
   @Transient
-  public LocalDateTime getEndTime(){
-    if(this.appointmentTime == null){
-      return null;
-    }
-    return this.appointmentTime.plusHours(1);
+  public LocalDateTime getEndTime() {
+    return appointmentTime != null ? appointmentTime.plusHours(1) : null;
   }
 
-  @Transient 
-  public LocalDate getAppointmentDate(){
-    return this.appointmentTime.toLocalDate();
+  @Transient
+  public LocalDate getAppointmentDate() {
+    return appointmentTime != null ? appointmentTime.toLocalDate() : null;
   }
 
-  @Transient 
-  public LocalTime getAppointmentTimeOnly(){
-    return this.appointmentTime.toLocalTime();
+  @Transient
+  public LocalTime getAppointmentTimeOnly() {
+    return appointmentTime != null ? appointmentTime.toLocalTime() : null;
   }
 }
-

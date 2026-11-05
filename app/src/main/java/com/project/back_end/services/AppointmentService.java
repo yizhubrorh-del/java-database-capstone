@@ -1,6 +1,8 @@
 package com.project.back_end.services;
 
 public class AppointmentService {
+
+    
 // 1. **Add @Service Annotation**:
 //    - To indicate that this class is a service layer class for handling business logic.
 //    - The `@Service` annotation should be added before the class declaration to mark it as a Spring service component.

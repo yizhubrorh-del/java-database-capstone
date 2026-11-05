@@ -35,7 +35,7 @@ public class Doctor {
     @Size(min = 3, max = 100)
     private String name;
 
-    @NotBlank(message = "Speciality can't be blank")
+    @NotBlank(message = "Specialty can't be blank")
     @Size(min = 3, max = 50)
     private String speciality;
 
