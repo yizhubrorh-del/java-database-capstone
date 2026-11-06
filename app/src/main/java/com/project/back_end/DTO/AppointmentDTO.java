@@ -4,15 +4,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class AppointmentDTO {
     
     private Long id;
@@ -41,6 +36,7 @@ public class AppointmentDTO {
 
     private LocalDateTime endTime;
 
+    @Builder 
     public AppointmentDTO(Long id, Long doctorId, String doctorName, Long patientId, String patientName, String patientEmail, 
                           String patientPhone, String patientAddress, LocalDateTime appointmentTime, int status){
         
@@ -52,6 +48,8 @@ public class AppointmentDTO {
         this.patientEmail = patientEmail;
         this.patientPhone = patientPhone;
         this.patientAddress = patientAddress;
+        this.appointmentTime = appointmentTime;
+        this.status = status;
         this.appointmentDate = appointmentTime != null ? appointmentTime.toLocalDate() : null;
         this.appointmentTimeOnly = appointmentTime != null ? appointmentTime.toLocalTime() : null;
         this.endTime = appointmentTime != null ? appointmentTime.plusHours(1) : null;
