@@ -104,5 +104,4 @@ public class PatientServiceImpl implements PatientService{
                              .status(appointment.getStatus())
                              .build();
     }
-    
 }

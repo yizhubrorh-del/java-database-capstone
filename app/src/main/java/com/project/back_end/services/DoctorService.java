@@ -36,4 +36,6 @@ public interface DoctorService {
     ResponseEntity<List<Doctor>> filterDoctorByTimeAndSpeciality(LocalDateTime availableTime, String speciality);
 
     ResponseEntity<List<Doctor>> filterDoctorBySpeciality(String speciality);
+
+    ResponseEntity<List<Doctor>> filterDoctors(String name, String specialty, LocalDate start, LocalDate end);
 }

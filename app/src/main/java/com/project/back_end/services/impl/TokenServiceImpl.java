@@ -71,6 +71,10 @@ public class TokenServiceImpl {
                 return false;
             }
 
+            if(!role.equalsIgnoreCase(extractRole(token))){
+                return false;
+            }
+
             return switch (role.toLowerCase()) {
                 case "admin"   -> adminRepository.findByUsername(identifier) != null;
                 case "doctor"  -> doctorRepository.findByEmail(identifier) != null;

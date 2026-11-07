@@ -148,6 +148,43 @@ public class DoctorServiceImpl implements DoctorService{
         return ResponseEntity.ok(doctorRepository.findBySpecialtyIgnoreCase(speciality));
     }
 
+    @Override
+    @Transactional 
+    public ResponseEntity<List<Doctor>> filterDoctors(String name, String specialty, LocalDate start, LocalDate end) {
+        if((start == null) != (end == null)){
+            throw new IllegalArgumentException("Start and end must be provided together");
+        }
+        if (start != null && start.isAfter(end)) {
+            throw new IllegalArgumentException("Start can't be after end");
+        }
+
+        boolean hasName = name != null && !name.isBlank();
+        boolean hasSpecialty = specialty != null && !specialty.isBlank();
+
+        List<Doctor> doctors;
+
+        if (hasName && hasSpecialty) {
+            doctors = doctorRepository.findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(name, specialty);
+        }else if(hasName){
+            doctors = doctorRepository.findByNameLike(name);
+        }else if(hasSpecialty){
+            doctors = doctorRepository.findBySpecialtyIgnoreCase(specialty);
+        }else{
+            doctors = doctorRepository.findAll();
+        }
+
+        if(start == null){
+            return ResponseEntity.ok(doctors);
+        }
+
+        LocalDateTime from = start.atStartOfDay();
+        LocalDateTime to = end.atTime(LocalTime.MAX);
+
+        return ResponseEntity.ok(doctors.stream()
+                             .filter(doctor -> hasAvailabilityBetween(doctor, from, to))
+                             .toList());
+    }
+
     // ===================== Métodos auxiliares de disponibilidad =====================
 
     /**
