@@ -15,13 +15,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Appointment {
 
   @Id
@@ -49,18 +49,24 @@ public class Appointment {
   @Size(max = 100)
   private String notes;
 
-  @Transient
-  public LocalDateTime getEndTime() {
-    return appointmentTime != null ? appointmentTime.plusHours(1) : null;
-  }
+  @Transient 
+  private LocalDateTime endTime;
+  
+  @Transient 
+  private LocalDate appointmentDate;
 
-  @Transient
-  public LocalDate getAppointmentDate() {
-    return appointmentTime != null ? appointmentTime.toLocalDate() : null;
-  }
+  @Transient 
+  private LocalTime appointmentTimeOnly;
 
-  @Transient
-  public LocalTime getAppointmentTimeOnly() {
-    return appointmentTime != null ? appointmentTime.toLocalTime() : null;
+  @Builder 
+  public Appointment(Long id, Doctor doctor, Patient patient, String reasonForVisit, LocalDateTime appointmentTime, int status, String notes){
+    this.id = id;
+    this.doctor = doctor;
+    this.patient = patient;
+    this.reasonForVisit = reasonForVisit;
+    this.appointmentTime = appointmentTime;
+    this.appointmentDate = appointmentTime != null ? appointmentTime.toLocalDate() : null;
+    this.appointmentTimeOnly = appointmentTime != null ? appointmentTime.toLocalTime() : null;
+    this.endTime = appointmentTime != null ? appointmentTime.plusHours(1) : null;
   }
 }
