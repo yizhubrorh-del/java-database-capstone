@@ -9,7 +9,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,8 +22,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(
+        name = "uk_appointment_doctor_time",
+        columnNames = {"doctor_id", "appointment_time"}))
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Appointment {
 
   @Id
@@ -49,24 +56,21 @@ public class Appointment {
   @Size(max = 100)
   private String notes;
 
-  @Transient 
-  private LocalDateTime endTime;
-  
-  @Transient 
-  private LocalDate appointmentDate;
+  // Campos derivados: se calculan al pedirlos, así funcionan también con las citas que Hibernate
+  // carga de la BD (que se construyen con el constructor vacío).
 
-  @Transient 
-  private LocalTime appointmentTimeOnly;
+  @Transient
+  public LocalDateTime getEndTime() {
+    return appointmentTime != null ? appointmentTime.plusHours(1) : null;
+  }
 
-  @Builder 
-  public Appointment(Long id, Doctor doctor, Patient patient, String reasonForVisit, LocalDateTime appointmentTime, int status, String notes){
-    this.id = id;
-    this.doctor = doctor;
-    this.patient = patient;
-    this.reasonForVisit = reasonForVisit;
-    this.appointmentTime = appointmentTime;
-    this.appointmentDate = appointmentTime != null ? appointmentTime.toLocalDate() : null;
-    this.appointmentTimeOnly = appointmentTime != null ? appointmentTime.toLocalTime() : null;
-    this.endTime = appointmentTime != null ? appointmentTime.plusHours(1) : null;
+  @Transient
+  public LocalDate getAppointmentDate() {
+    return appointmentTime != null ? appointmentTime.toLocalDate() : null;
+  }
+
+  @Transient
+  public LocalTime getAppointmentTimeOnly() {
+    return appointmentTime != null ? appointmentTime.toLocalTime() : null;
   }
 }
