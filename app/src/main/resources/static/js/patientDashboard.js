@@ -1,8 +1,7 @@
 // patientDashboard.js
-import { getDoctors } from './services/doctorServices.js';
+import { getDoctors, filterDoctors } from './services/doctorServices.js';
 import { openModal } from './components/modals.js';
 import { createDoctorCard } from './components/doctorCard.js';
-import { filterDoctors } from './services/doctorServices.js';//call the same function to avoid duplication coz the functionality was same
 import { patientSignup, patientLogin } from './services/patientServices.js';
 
 
@@ -29,15 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadDoctorCards() {
   getDoctors()
-    .then(doctors => {
-      const contentDiv = document.getElementById("content");
-      contentDiv.innerHTML = "";
-
-      doctors.forEach(doctor => {
-        const card = createDoctorCard(doctor);
-        contentDiv.appendChild(card);
-      });
-    })
+    .then(doctors => renderDoctorCards(doctors))
     .catch(error => {
       console.error("Failed to load doctors:", error);
     });
@@ -61,25 +52,27 @@ function filterDoctorsOnChange() {
 
   filterDoctors(name, time, specialty)
     .then(response => {
-      const doctors = response.doctors;
-      const contentDiv = document.getElementById("content");
-      contentDiv.innerHTML = "";
+      const doctors = response?.doctors ?? [];
 
       if (doctors.length > 0) {
-        console.log(doctors);
-        doctors.forEach(doctor => {
-          const card = createDoctorCard(doctor);
-          contentDiv.appendChild(card);
-        });
+        renderDoctorCards(doctors);
       } else {
-        contentDiv.innerHTML = "<p>No doctors found with the given filters.</p>";
-        console.log("Nothing");
+        document.getElementById("content").innerHTML = "<p>No doctors found with the given filters.</p>";
       }
     })
     .catch(error => {
       console.error("Failed to filter doctors:", error);
       alert("❌ An error occurred while filtering doctors.");
     });
+}
+
+// Render utility: clears #content and renders one card per doctor
+export function renderDoctorCards(doctors) {
+  const contentDiv = document.getElementById("content");
+  contentDiv.innerHTML = "";
+  (doctors || []).forEach(doctor => {
+    contentDiv.appendChild(createDoctorCard(doctor));
+  });
 }
 
 window.signupPatient = async function () {
@@ -120,15 +113,15 @@ window.loginPatient = async function () {
     if (response.ok) {
       const result = await response.json();
       console.log(result);
+      localStorage.setItem('token', result.token);
       selectRole('loggedPatient');
-      localStorage.setItem('token', result.token)
       window.location.href = '/pages/loggedPatientDashboard.html';
     } else {
       alert('❌ Invalid credentials!');
     }
   }
   catch (error) {
-    alert("❌ Failed to Login : ", error);
+    alert(`❌ Failed to Login: ${error.message}`);
     console.log("Error :: loginPatient :: ", error)
   }
 
