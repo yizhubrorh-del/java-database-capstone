@@ -1,11 +1,11 @@
-import { deleteDoctor } from '../services/doctorServices';
-import { getPatientData } from '../services/patientServices';
+import { deleteDoctor } from '../services/doctorServices.js';
+import { getPatientData } from '../services/patientServices.js';
 
 export function createDoctorCard(doctor){
     const card = document.createElement("div");
     card.classList.add("doctor-card");
 
-    const role = localStorage.getItem("user-role");
+    const role = localStorage.getItem("userRole");
 
     const infoDiv = document.createElement("div");
     infoDiv.classList.add("doctor-info");
@@ -14,15 +14,15 @@ export function createDoctorCard(doctor){
     name.textContent = doctor.name;
 
     const specialization = document.createElement("p");
-    specialization.textContent = 'Specialty: ${doctor.specialization || doctor.specialty}';
+    specialization.textContent = `Specialty: ${doctor.speciality || 'N/A'}`;
 
     const email = document.createElement("p");
     email.textContent = `Email: ${doctor.email || 'N/A'}`;
 
     const availability = document.createElement("p");
-    const availText = Array.isArray(doctor.availability)
-        ? doctor.availability.join(", ")
-        : (doctor.availability || 'Mon - Fri 9:00 AM - 5:00 PM');
+    const availText = Array.isArray(doctor.availableTimes) && doctor.availableTimes.length > 0
+        ? doctor.availableTimes.join(", ")
+        : 'No availability';
     availability.textContent = `Availability: ${availText}`;
 
     infoDiv.appendChild(name);

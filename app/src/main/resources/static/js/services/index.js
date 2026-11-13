@@ -24,8 +24,8 @@ window.onload = function () {
 window.adminLoginHandler = async function (event) {
   if(event) event.preventDefault();
 
-  const usernameInput = document.getElementById("adminUsername")?.value;
-  const passwordInput = document.getElementById("adminPassword")?.value;
+  const usernameInput = document.getElementById("username")?.value;
+  const passwordInput = document.getElementById("password")?.value;
 
   const adminCredentials = {
     username: usernameInput,
@@ -64,8 +64,8 @@ window.adminLoginHandler = async function (event) {
 window.doctorLoginHandler = async function(event){
   if(event) event.preventDefault();
 
-  const emailInput = document.getElementById("doctorEmail")?.value;
-  const passwordInput = document.getElementById("doctorPassword").value;
+  const emailInput = document.getElementById("email")?.value;
+  const passwordInput = document.getElementById("password")?.value;
 
   const doctorCredentials = {
     email: emailInput,
