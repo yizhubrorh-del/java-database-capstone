@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -47,9 +49,35 @@ public class DoctorServiceImpl implements DoctorService{
 
     @Override
     @Transactional 
-    public ResponseEntity<String> saveDoctor(Doctor doctor) {
-        doctorRepository.save(doctor);
-        return ResponseEntity.ok("Doctor " + doctor.getName() + " added correctly.");
+    public ResponseEntity<Map<String, String>> saveDoctor(Doctor doctor) {
+        if (doctorRepository.findByEmail(doctor.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Doctor already exists"));
+        }
+
+        try {
+            doctor.setId(null); // always create, never overwrite an existing row
+            doctorRepository.saveAndFlush(doctor);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Doctor added to db"));
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Doctor already exists"));
+        } catch (DataAccessException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Some internal error occurred"));
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<Map<String, String>> updateDoctor(Doctor doctor) {
+        if (doctor.getId() == null || !doctorRepository.existsById(doctor.getId())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Doctor not found"));
+        }
+
+        try {
+            doctorRepository.saveAndFlush(doctor);
+            return ResponseEntity.ok(Map.of("message", "Doctor updated"));
+        } catch (DataAccessException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Some internal error occurred"));
+        }
     }
 
     @Override
@@ -60,14 +88,19 @@ public class DoctorServiceImpl implements DoctorService{
 
     @Override
     @Transactional 
-    public ResponseEntity<String> deleteDoctor(Long doctorId) {
-        if(!doctorRepository.existsById(doctorId)){
-            throw new EntityNotFoundException("Doctor with id " + doctorId + " not found.");
+    public ResponseEntity<Map<String, String>> deleteDoctor(Long doctorId) {
+        if (!doctorRepository.existsById(doctorId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Doctor not found with id " + doctorId));
         }
 
-        appointmentRepository.deleteAllByDoctorId(doctorId);
-        doctorRepository.deleteById(doctorId);
-        return ResponseEntity.ok("Doctor with id " + doctorId + " deleted correctly.");
+        try {
+            appointmentRepository.deleteAllByDoctorId(doctorId);
+            doctorRepository.deleteById(doctorId);
+            doctorRepository.flush();
+            return ResponseEntity.ok(Map.of("message", "Doctor deleted successfully"));
+        } catch (DataAccessException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Some internal error occurred"));
+        }
     }
 
     @Override
@@ -76,7 +109,7 @@ public class DoctorServiceImpl implements DoctorService{
         Doctor doctor = doctorRepository.findByEmail(login.getEmail());
 
         if(doctor == null || !doctor.getPassword().equals(login.getPassword())){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid email or password"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid email or password"));
         }
 
         String token = tokenService.generateToken(doctor.getEmail(), "doctor");

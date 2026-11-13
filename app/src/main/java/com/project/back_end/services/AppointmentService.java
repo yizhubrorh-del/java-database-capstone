@@ -9,9 +9,9 @@ import org.springframework.http.ResponseEntity;
 import com.project.back_end.DTO.AppointmentDTO;
 
 public interface AppointmentService {
-    ResponseEntity<Integer> bookAppointment(AppointmentDTO appointment, String reasonForVisit, String notes);
+    ResponseEntity<Integer> bookAppointment(AppointmentDTO appointment);
 
-    ResponseEntity<Map<String,String>> updateAppointment(Long appointmentId, AppointmentDTO appointmentDTO, String reasonForVisit, String notes);
+    ResponseEntity<Map<String,String>> updateAppointment(AppointmentDTO appointmentDTO);
 
     ResponseEntity<Map<String, String>> cancelAppointment(Long appointmentId, String token);
 

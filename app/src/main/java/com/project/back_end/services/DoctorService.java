@@ -15,11 +15,13 @@ public interface DoctorService {
 
     ResponseEntity<List<String>> getDoctorAvailability(Long doctorId, LocalDate date);
 
-    ResponseEntity<String> saveDoctor(Doctor doctor);
+    ResponseEntity<Map<String,String>> saveDoctor(Doctor doctor);
 
     ResponseEntity<List<Doctor>> getDoctors();
     
-    ResponseEntity<String> deleteDoctor(Long doctorId);
+    ResponseEntity<Map<String, String>> updateDoctor(Doctor doctor);
+
+    ResponseEntity<Map<String, String>> deleteDoctor(Long doctorId);
 
     ResponseEntity<Map<String, String>> validateDoctor(Login login);
     

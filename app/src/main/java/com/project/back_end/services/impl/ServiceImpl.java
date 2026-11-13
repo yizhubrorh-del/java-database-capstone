@@ -1,6 +1,6 @@
 package com.project.back_end.services.impl;
 
-import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class ServiceImpl {
     public ResponseEntity<Map<String, String>> validateToken(String token, String role){
         if(!tokenService.validateToken(token, role)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .body(Map.of("error", "Invalid or expired token"));
+                                 .body(Map.of("message", "Invalid or expired token"));
         }
         return ResponseEntity.ok(Map.of("message", "Token is valid"));
     }
@@ -48,12 +48,42 @@ public class ServiceImpl {
                                  .body(Map.of("token", token));
         }else{
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .body(Map.of("error", "Incorrect password or username"));
+                                 .body(Map.of("message", "Incorrect password or username"));
         }
     }
 
-    public ResponseEntity<List<Doctor>> filterDoctor(String name, String specialty, LocalDate start, LocalDate end){
-        return doctorService.filterDoctors(name, specialty, start, end);
+    /**
+     * Filters doctors by name, specialty and time of day.
+     * time can be "AM" (a slot starting before 12:00), "PM" (a slot starting at 12:00 or later) or null.
+     */
+    public ResponseEntity<List<Doctor>> filterDoctor(String name, String time, String specialty){
+        List<Doctor> doctors = doctorService.filterDoctors(name, specialty, null, null).getBody();
+
+        if (time == null || time.isBlank()) {
+            return ResponseEntity.ok(doctors);
+        }
+
+        boolean morning;
+        if (time.equalsIgnoreCase("AM")) {
+            morning = true;
+        } else if (time.equalsIgnoreCase("PM")) {
+            morning = false;
+        } else {
+            throw new IllegalArgumentException("Time must be AM or PM");
+        }
+
+        return ResponseEntity.ok(doctors.stream()
+                                        .filter(doctor -> hasSlotInPeriod(doctor, morning))
+                                        .toList());
+    }
+
+    private boolean hasSlotInPeriod(Doctor doctor, boolean morning){
+        if (doctor.getAvailableTimes() == null) {
+            return false;
+        }
+        return doctor.getAvailableTimes().stream()
+                     .map(slot -> LocalTime.parse(slot.split("-")[0].trim()))
+                     .anyMatch(start -> start.isBefore(LocalTime.NOON) == morning);
     }
 
     public ResponseEntity<Integer> validateAppointment(AppointmentDTO appointment){
@@ -62,16 +92,19 @@ public class ServiceImpl {
             String start = appointment.getAppointmentTime().toLocalTime()
                                       .format(DateTimeFormatter.ofPattern("HH:mm"));
 
-            var availableTimeSlots = doctorService.getDoctorAvailability(appointment.getDoctorId(), appointment.getAppointmentDate()).getBody();
+            var availableTimeSlots = doctorService.getDoctorAvailability(appointment.getDoctorId(), appointment.getAppointmentTime().toLocalDate()).getBody();
 
             boolean available = availableTimeSlots.stream()
                                                   .anyMatch(slot -> slot.startsWith(start + "-"));
             if (available) {
+                // Libre
                 return ResponseEntity.status(HttpStatus.OK).body(1);
             }else{
+                // Ocupado
                 return ResponseEntity.status(HttpStatus.OK).body(0);
             }
         }else{
+            // Doctor no existe
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(-1);
         }
     }
@@ -93,7 +126,7 @@ public class ServiceImpl {
             var token = tokenService.generateToken(patient.getEmail(), "patient");
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("token", token));
         }else{
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Incorrect email or password"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Incorrect email or password"));
         } 
     }
 

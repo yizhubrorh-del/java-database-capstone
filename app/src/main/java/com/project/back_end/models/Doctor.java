@@ -62,12 +62,14 @@ public class Doctor {
 
     @NotBlank(message = "Clinic Adress can't be blank")
     @Size(max = 255)
-    private String clinicAdress;
+    @Builder.Default
+    private String clinicAdress = "Not specified";
 
     @NotNull(message = "Rating can't be null")
     @Min(value = 0, message = "Rating can't be negative")
     @Max(value = 5, message = "The max rating is 5")
-    private Double rating;
+    @Builder.Default
+    private Double rating = 0.0;
 
 
 

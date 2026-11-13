@@ -53,6 +53,10 @@ export function openModal(type) {
       <input type="password" id="password" placeholder="Password" class="input-field">
       <input type="text" id="phone" placeholder="Phone" class="input-field">
       <input type="text" id="address" placeholder="Address" class="input-field">
+      <label for="dateOfBirth">Date of birth</label>
+      <input type="date" id="dateOfBirth" class="input-field">
+      <input type="text" id="emergencyContact" placeholder="Emergency contact (10 digits)" class="input-field">
+      <input type="text" id="insuranceProvider" placeholder="Insurance provider" class="input-field">
       <button class="dashboard-btn" id="signupBtn">Signup</button>
     `;
 

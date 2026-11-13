@@ -47,5 +47,6 @@ public class Prescription {
 
   @Valid
   @NotNull(message = "Pharmacy can't be null")
-  private Pharmacy pharmacy;
+  @Builder.Default
+  private Pharmacy pharmacy = new Pharmacy("Not specified", "Not specified");
 }

@@ -71,6 +71,8 @@ function redirectToUpdatePage(appointment) {
     doctorId: appointment.doctorId,
     appointmentDate: appointment.appointmentDate,
     appointmentTime: appointment.appointmentTimeOnly,
+    reasonForVisit: appointment.reasonForVisit || "",
+    notes: appointment.notes || "",
   }).toString();
 
   // Redirect to the update page with the query string

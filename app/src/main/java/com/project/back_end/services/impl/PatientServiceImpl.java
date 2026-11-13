@@ -27,7 +27,7 @@ public class PatientServiceImpl implements PatientService{
     @Override
     @Transactional 
     public ResponseEntity<String> createPatient(Patient patient) {
-        patientRepository.save(patient);
+        patientRepository.saveAndFlush(patient);
         return ResponseEntity.ok("The patient named " + patient.getName() + " was added correctly.");
     }
 

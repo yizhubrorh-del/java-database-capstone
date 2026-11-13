@@ -39,6 +39,12 @@
                         <select id="appointmentTime" required>
                         </select>
 
+                        <label for="reasonForVisit">Reason for Visit</label>
+                        <input type="text" id="reasonForVisit" minlength="6" maxlength="50" required>
+
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" rows="3" maxlength="100"></textarea>
+
                         <button type="submit" class="btn-primary" id="updateAppointment">Update Appointment</button>
                         <button type="button" onclick="window.location.href='/pages/patientAppointments.html'"
                             class="btn-secondary">Cancel</button>

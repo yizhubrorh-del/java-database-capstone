@@ -82,8 +82,11 @@ window.signupPatient = async function () {
     const password = document.getElementById("password").value;
     const phone = document.getElementById("phone").value;
     const address = document.getElementById("address").value;
+    const dateOfBirth = document.getElementById("dateOfBirth").value || null;
+    const emergencyContact = document.getElementById("emergencyContact").value;
+    const insuranceProvider = document.getElementById("insuranceProvider").value;
 
-    const data = { name, email, password, phone, address };
+    const data = { name, email, password, phone, address, dateOfBirth, emergencyContact, insuranceProvider };
     const { success, message } = await patientSignup(data);
     if (success) {
       alert(message);

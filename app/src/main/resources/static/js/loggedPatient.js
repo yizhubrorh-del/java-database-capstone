@@ -52,6 +52,8 @@ export function showBookingOverlay(e, doctor, patient) {
       <option value="">Select time</option>
       ${doctor.availableTimes.map(t => `<option value="${t}">${t}</option>`).join('')}
     </select>
+    <input class="input-field" type="text" id="appointment-reason" placeholder="Reason for visit (6-50 characters)" minlength="6" maxlength="50" />
+    <textarea class="input-field" id="appointment-notes" placeholder="Notes (optional, max 100 characters)" maxlength="100"></textarea>
     <button class="confirm-booking">Confirm Booking</button>
   `;
 
@@ -63,12 +65,24 @@ export function showBookingOverlay(e, doctor, patient) {
     const date = modalApp.querySelector("#appointment-date").value;
     const time = modalApp.querySelector("#appointment-time").value;
     const token = localStorage.getItem("token");
+    const reasonForVisit = modalApp.querySelector("#appointment-reason").value.trim();
+    const notes = modalApp.querySelector("#appointment-notes").value.trim();
+    if (!date || !time) {
+      alert("Please select both date and time.");
+      return;
+    }
+    if (reasonForVisit.length < 6 || reasonForVisit.length > 50) {
+      alert("The reason for visit must be between 6 and 50 characters.");
+      return;
+    }
     const startTime = time.split('-')[0];
     const appointment = {
-      doctor: { id: doctor.id },
-      patient: { id: patient.id },
+      doctorId: doctor.id,
+      patientId: patient.id,
       appointmentTime: `${date}T${startTime}:00`,
-      status: 0
+      status: 0,
+      reasonForVisit,
+      notes: notes || null
     };
 
 

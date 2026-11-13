@@ -37,6 +37,8 @@ async function initializePage() {
       document.getElementById("doctorName").value = doctorName;
       document.getElementById("appointmentDate").value = appointmentDate;
       document.getElementById("appointmentTime").value = appointmentTime;
+      document.getElementById("reasonForVisit").value = urlParams.get("reasonForVisit") || "";
+      document.getElementById("notes").value = urlParams.get("notes") || "";
 
       const timeSelect = document.getElementById("appointmentTime");
       doctor.availableTimes.forEach(time => {
@@ -53,6 +55,8 @@ async function initializePage() {
         const date = document.getElementById("appointmentDate").value;
         const time = document.getElementById("appointmentTime").value;
         const startTime = time.split('-')[0];
+        const reasonForVisit = document.getElementById("reasonForVisit").value.trim();
+        const notes = document.getElementById("notes").value.trim();
         if (!date || !time) {
           alert("Please select both date and time.");
           return;
@@ -60,10 +64,12 @@ async function initializePage() {
 
         const updatedAppointment = {
           id: appointmentId,
-          doctor: { id: doctor.id },
-          patient: { id: patientId },
+          doctorId: doctor.id,
+          patientId: Number(patientId),
           appointmentTime: `${date}T${startTime}:00`,
-          status: 0
+          status: 0,
+          reasonForVisit,
+          notes: notes || null
         };
 
         const updateResponse = await updateAppointment(updatedAppointment, token);

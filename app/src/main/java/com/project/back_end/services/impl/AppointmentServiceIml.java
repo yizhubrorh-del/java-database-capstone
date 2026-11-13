@@ -35,17 +35,7 @@ public class AppointmentServiceIml implements AppointmentService{
     private final DoctorRepository doctorRepository;
     
     @Override 
-    public ResponseEntity<Integer> bookAppointment(AppointmentDTO appointment, String reasonForVisit, String notes) {
-
-        LocalDateTime time = appointment.getAppointmentTime();
-        boolean invalidReason = reasonForVisit == null || reasonForVisit.isBlank()
-                || reasonForVisit.length() < 6 || reasonForVisit.length() > 50;
-        boolean invalidNotes = notes != null && notes.length() > 100;
-        boolean invalidTime = time == null || !time.isAfter(LocalDateTime.now());
-
-        if (invalidReason || invalidNotes || invalidTime) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(0);
-        }
+    public ResponseEntity<Integer> bookAppointment(AppointmentDTO appointment) {
 
 
         var validate = service.validateAppointment(appointment).getBody();
@@ -56,7 +46,7 @@ public class AppointmentServiceIml implements AppointmentService{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(0);
         }
 
-        Appointment newAppointment = toAppointment(appointment, reasonForVisit, notes);
+        Appointment newAppointment = toAppointment(appointment, appointment.getReasonForVisit(), appointment.getNotes());
 
         try {
             appointmentRepository.saveAndFlush(newAppointment);
@@ -69,40 +59,26 @@ public class AppointmentServiceIml implements AppointmentService{
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> updateAppointment(Long appointmentId, AppointmentDTO appointmentDTO, String reasonForVisit, String notes) {
-        LocalDateTime time = appointmentDTO.getAppointmentTime();
-        boolean invalidReason = reasonForVisit == null || reasonForVisit.isBlank()
-                || reasonForVisit.length() < 6 || reasonForVisit.length() > 50;
-        boolean invalidNotes = notes != null && notes.length() > 100;
-        boolean invalidTime = time == null || !time.isAfter(LocalDateTime.now());
-        boolean hasNotes = notes != null && !notes.isBlank();
-        boolean hasReasonForVisit = reasonForVisit != null && !reasonForVisit.isBlank();
-        
-
-        if (invalidReason || invalidNotes || invalidTime) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid parameters"));
+    public ResponseEntity<Map<String, String>> updateAppointment(AppointmentDTO appointmentDTO) {
+        if (appointmentDTO.getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Appointment id is required"));
         }
 
-        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
+        Appointment appointment = appointmentRepository.findById(appointmentDTO.getId()).orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
 
         boolean slotChanged = !appointment.getDoctor().getId().equals(appointmentDTO.getDoctorId())
         || !appointment.getAppointmentTime().equals(appointmentDTO.getAppointmentTime());
 
         if(!appointment.getPatient().getId().equals(appointmentDTO.getPatientId())){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Patient doesn't match"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Patient doesn't match"));
         }
 
         if (appointment.getStatus() != 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Only scheduled appointments can be updated"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Only scheduled appointments can be updated"));
         }
 
-        if (hasNotes) {
-            appointment.setNotes(notes);
-        }
-
-        if (hasReasonForVisit) {
-            appointment.setReasonForVisit(reasonForVisit);
-        }
+        appointment.setReasonForVisit(appointmentDTO.getReasonForVisit());
+        appointment.setNotes(appointmentDTO.getNotes());
 
         appointment.setDoctor(doctorRepository.findById(appointmentDTO.getDoctorId()).orElseThrow(() -> new EntityNotFoundException("Doctor not found")));
 
@@ -112,19 +88,19 @@ public class AppointmentServiceIml implements AppointmentService{
             var validation = service.validateAppointment(toAppointmentDTO(appointment)).getBody();
             switch (validation) {
                 case 0:
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "New appointment time isn't available"));
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "New appointment time isn't available"));
                 case -1:
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Doctor not found"));
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Doctor not found"));
             }
         }
         
         try {
             appointmentRepository.saveAndFlush(appointment);
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of("success", "Appointment updated correctly"));
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Appointment updated correctly"));
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Data integrity violation"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Data integrity violation"));
         } catch (DataAccessException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Internal server error"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Internal server error"));
         }
     }
 
@@ -136,21 +112,21 @@ public class AppointmentServiceIml implements AppointmentService{
             Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
             if(patient.getId().equals(appointment.getPatient().getId())){
                 if(appointment.getStatus() != 0){
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Can't delete a completed appointment"));
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Can't delete a completed appointment"));
                 }
                 
                 appointmentRepository.deleteById(appointmentId);
 
-                return ResponseEntity.status(HttpStatus.OK).body(Map.of("success", "Appointment cancelled successfully"));
+                return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Appointment cancelled successfully"));
 
             }else{
                 
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "The appointment doesn't belong to the user"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "The appointment doesn't belong to the user"));
 
             }
         }else{
 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired token"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or expired token"));
 
         }
     }
@@ -178,18 +154,18 @@ public class AppointmentServiceIml implements AppointmentService{
     public ResponseEntity<Map<String, String>> changeStatus(Long appointmentId, Integer newStatus) {
 
         if (newStatus == null || newStatus < 0 || newStatus > 2) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid new status"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Invalid new status"));
         }
 
         Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
 
         if (appointment.getStatus() != 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Appointment already completed"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Appointment already completed"));
         }
 
         appointmentRepository.updateStatus(newStatus, appointmentId);
         
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("success", "Status updated successfully"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Status updated successfully"));
     }
 
     // ====================== Auxiliar Methods ==================================
@@ -221,6 +197,8 @@ public class AppointmentServiceIml implements AppointmentService{
                              .patientAddress(appointment.getPatient().getAddress())
                              .appointmentTime(appointment.getAppointmentTime())
                              .status(appointment.getStatus())
+                             .reasonForVisit(appointment.getReasonForVisit())
+                             .notes(appointment.getNotes())
                              .build();
     }
     
