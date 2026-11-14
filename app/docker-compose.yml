@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    env_file: .env            # JWT_SECRET and the rest of the variables
+    environment:              # override the .env URLs to use the compose services
+      DATABASE_URL: jdbc:mysql://mysql:3306/cms?createDatabaseIfNotExist=true
+      DATABASE_USER: root
+      DATABASE_PASSWORD: root
+      MONGO_URI: mongodb://mongodb:27017/cms
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    ports:
+      - "3307:3306"           # 3307 on the host so it doesn't clash with XAMPP
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cms
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:6.0
+    restart: always
+    ports:
+      - "27018:27017"         # 27018 on the host so it doesn't clash with the local MongoDB
+    volumes:
+      - mongo-data:/data/db
+      - ../database/mongo-seed.js:/docker-entrypoint-initdb.d/mongo-seed.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+  mongo-data:

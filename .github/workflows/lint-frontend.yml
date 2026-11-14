@@ -1,0 +1,47 @@
+name: Lint Frontend
+
+on: [push, pull_request]
+
+jobs:
+  lint-frontend:
+    name: Lint HTML, CSS, and JS
+    runs-on: ubuntu-latest
+
+    env:
+      STATIC_DIR: app/src/main/resources/static
+      TEMPLATES_DIR: app/src/main/resources/templates
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install linters
+        run: npm install -g htmlhint stylelint stylelint-config-standard eslint@8
+
+      # Stylelint refuses to run without a config, so a minimal one is created on the fly
+      - name: Create Stylelint config
+        run: echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
+
+      - name: Lint HTML
+        continue-on-error: true
+        run: htmlhint "${STATIC_DIR}/**/*.html" "${TEMPLATES_DIR}/**/*.html"
+
+      - name: Lint CSS
+        continue-on-error: true
+        run: stylelint "${STATIC_DIR}/assets/css/**/*.css"
+
+      # ESLint 8 can run without a config file by passing the environment on the command line
+      - name: Lint JS
+        continue-on-error: true
+        run: >
+          eslint --no-eslintrc
+          --env browser,es2022
+          --parser-options=ecmaVersion:2022,sourceType:module
+          --rule "no-undef: error"
+          --rule "no-unused-vars: warn"
+          "${STATIC_DIR}/js/**/*.js"

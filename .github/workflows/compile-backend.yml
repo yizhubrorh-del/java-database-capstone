@@ -1,0 +1,24 @@
+name: Compile Java Backend
+
+on: [push, pull_request]
+
+jobs:
+  compile-backend:
+    name: Compile Backend Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      # Uses the Maven preinstalled on the runner: ./mvnw can't be used because .mvn/wrapper is missing
+      - name: Compile with Maven
+        working-directory: app
+        run: mvn -B clean compile

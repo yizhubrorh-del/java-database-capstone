@@ -4,6 +4,10 @@ import { createDoctorCard } from './components/doctorCard.js';
 import { filterDoctors } from './services/doctorServices.js';
 import { bookAppointment } from './services/appointmentRecordService.js';
 
+// doctorCard.js calls showBookingOverlay from the "Book Now" button, but it can't import it
+// (this file already imports doctorCard.js), so it is exposed globally like openModal
+window.showBookingOverlay = showBookingOverlay;
+
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDoctorCards();

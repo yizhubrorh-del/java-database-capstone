@@ -1,0 +1,27 @@
+name: Lint Java Backend
+
+on: [push, pull_request]
+
+jobs:
+  lint-java:
+    name: Checkstyle Java Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download Checkstyle
+        run: curl -fL -o checkstyle.jar https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.1/checkstyle-10.12.1-all.jar
+
+      # /google_checks.xml is bundled inside the Checkstyle jar (Google Java Style).
+      # Findings are reported as warnings, so they never fail the job.
+      - name: Run Checkstyle
+        continue-on-error: true
+        run: java -jar checkstyle.jar -c /google_checks.xml app/src/main/java/com/project/back_end
