@@ -25,7 +25,8 @@ jobs:
 
       # Stylelint refuses to run without a config, so a minimal one is created on the fly
       - name: Create Stylelint config
-        run: echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
+        run: |
+          echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
 
       - name: Lint HTML
         continue-on-error: true
