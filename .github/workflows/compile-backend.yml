@@ -22,3 +22,8 @@ jobs:
       - name: Compile with Maven
         working-directory: app
         run: mvn -B clean compile
+
+      # BackEndApplicationTests is skipped: it boots the full context and needs live MySQL/MongoDB
+      - name: Run tests
+        working-directory: app
+        run: mvn -B test '-Dtest=!BackEndApplicationTests'
